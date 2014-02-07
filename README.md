@@ -1,4 +1,6 @@
 knockout.groupedSelect
 ======================
 
-Custom binding for knockoutjs which permits <select> elements containing <optgroup>s.
+Custom binding for knockoutjs which permits &lt;select> elements containing &lt;optgroup>s.
+
+An example can be seen <a href="http://jsfiddle.net/ajameson/eJe2D/" target="_new">here</a>.
