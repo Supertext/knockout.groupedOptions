@@ -21,12 +21,12 @@ ko.bindingHandlers.groupedOption = {
             optionsValProp = "Value";
 
         if (typeof (groups) === "undefined" || !groups) {
-            throw "The \"groupedSelect\" binding requires a \"groups\" object be specified.";
+            throw "The \"groupedOption\" binding requires a \"groups\" object be specified.";
         } else {
             groupsCollection = groups["coll"];
         }
         if (!groupsCollection) {
-            throw "The \"groupedSelect\" binding's \"groups\" object requires that a collection (array or observableArray) be specified.";
+            throw "The \"groupedOption\" binding's \"groups\" object requires that a collection (array or observableArray) be specified.";
         }
         if (typeof (groups["label"]) === "string" && groups["label"].length) {
             groupsLabel = groups["label"];
