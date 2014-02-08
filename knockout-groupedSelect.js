@@ -1,12 +1,12 @@
 /*!
- * knockout-groupedSelect.js v1.0.0
+ * knockout-groupedOption.js v1.0.0
  * 
  * Copyright (c) Andrew Jameson, www.Supertext.ch
  * Available under the MIT license: http://opensource.org/licenses/MIT
  */
 
 
-ko.bindingHandlers.groupedSelect = {
+ko.bindingHandlers.groupedOption = {
     update: function(element, valueAccessor) {
 
         // Get the parameters
