@@ -3,4 +3,4 @@ knockout.groupedOptions
 
 Custom binding for knockoutjs which permits &lt;select> elements containing &lt;optgroup>s.
 
-An example can be seen <a href="http://jsfiddle.net/ajameson/eJe2D/6/" target="_new">here</a>.
+An example can be seen <a href="http://jsfiddle.net/ajameson/eJe2D/7/" target="_new">here</a>.
