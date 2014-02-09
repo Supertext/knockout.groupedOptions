@@ -3,7 +3,7 @@ knockout.groupedOptions
 
 Custom binding for <a href="https://github.com/knockout/knockout">knockoutjs</a> which permits &lt;select> elements containing &lt;optgroup>s.
 
-An example can be viewed <a href="http://jsfiddle.net/ajameson/eJe2D/7/" target="_new">here</a>.
+The [Documentation page](https://github.com/Supertext/knockout.groupedOptions/wiki/Documentation) contains an explanation of the _data-bind_ syntax and generally how to use this custom binding.
 
 
-An example of specifying each of the non-conventionally-named properties can be viewed <a href="http://jsfiddle.net/ajameson/Fsj67/1/" target="_new">here</a>.
+We have provided some examples using JSFiddle. Visit the [Examples page](https://github.com/Supertext/knockout.groupedOptions/wiki/Examples) for an explanation of what each example is demonstrating.
