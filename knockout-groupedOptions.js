@@ -5,24 +5,24 @@
  * Available under the MIT license: http://opensource.org/licenses/MIT
  */
  
-// data-bind="groupedSelect: { 
+// data-bind="groupedOptions: { 
 //                              groups: { 
 //                                          coll: [groups collection  |  required; no default],
 //                                          label: [name of textual property  |  default: 'Label'],
 //                                          options: {
 //                                              coll: [name of the collection containing the <option> elements  |  default: 'Options']
 //                                              text: [name of the textual property  |  default: 'Text'],
-//                                              val: [name of the value property  |  default: 'Value']
+//                                              value: [name of the value property  |  default: 'Value']
 //                                          },
 //                                      }, 
 //                              optionsCaption: [text to be displayed for the default <option>, i.e., "Please select"  |  default: <option> not rendered],
 //								value: [the property (observable or otherwise) which references the selected <option> item.]
 //                          }"
 //
-// eg, data-bind="groupedSelect: { groups: { coll: TextTypes, label: 'Label', options: { coll: 'Options', text: 'Text', val: 'Value' } }, optionsCaption: '- Please select -' }"
+// eg, data-bind="groupedOptions: { groups: { coll: TextTypes, label: 'Label', options: { coll: 'Options', text: 'Text', val: 'Value' } }, optionsCaption: '- Please select -' }"
 //
 // if using the conventions then this example may be shortened to
-// eg, data-bind="groupedSelect: { groups: { coll: TextTypes }, optionsCaption: '- Please select -' }"
+// eg, data-bind="groupedOptions: { groups: { coll: TextTypes }, optionsCaption: '- Please select -' }"
 
 // Note that neither of the above examples considers a subscribing property, i.e., a property whose value is pre-selected and which is updated when the user selection changes.
 
@@ -80,8 +80,8 @@ ko.bindingHandlers.groupedOptions = {
             if (typeof (options["text"]) === "string" && options["text"].length) {
                 optionsTextProp = options["text"];
             }
-            if (typeof (options["val"]) === "string" && options["val"].length) {
-                optionsValProp = options["val"];
+            if (typeof (options["value"]) === "string" && options["value"].length) {
+                optionsValProp = options["value"];
             }
         }
 		var selectedItem = h["value"],
@@ -109,15 +109,13 @@ ko.bindingHandlers.groupedOptions = {
 
         // if 'element' is currently empty then add the default <option> element
         if (!childCount) {
-
 			var defaultText = h["optionsCaption"];
-            if (defaultText && typeof(defaultText) === "string" && defaultText.length) {
-                var defaultOption = document.createElement("option");
-                defaultOption.innerHTML = defaultText;
-                element.appendChild(defaultOption);
-            }
+ 			if (defaultText && typeof(defaultText) === "string" && defaultText.length) {
+        		var defaultOption = document.createElement("option");
+				defaultOption.innerHTML = defaultText;
+				element.appendChild(defaultOption);
+        	}
         } else {
-
             // if 'element' is not empty then decrement realChildren by 1, which represents the default <option> element
             childCount--;
         }
@@ -147,10 +145,10 @@ ko.bindingHandlers.groupedOptions = {
 				var thisOption = options[j],
 					optionText = ko.utils.unwrapObservable(thisOption[optionsTextProp]);
 
-                // if there is no text for this <option> then don't add the <option>
-                if (!optionText || !optionText.length) {
-                    continue;
-                }
+				// if there is no text for this <option> then don't add the <option>
+				if (!optionText || !optionText.length) {
+					continue;
+				}
 
                 var option = document.createElement("option");
                 option.innerHTML = optionText;
