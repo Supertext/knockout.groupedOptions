@@ -1,7 +1,7 @@
 knockout.groupedOptions
 ======================
 
-Custom binding for <a href="https://github.com/knockout/knockout">knockoutjs</a> which permits &lt;select> elements containing &lt;optgroup>s.
+Custom binding for <a href="https://github.com/knockout/knockout">knockoutjs</a> which permits &lt;select> elements containing &lt;optgroup> elements.
 
 The [documentation page](https://github.com/Supertext/knockout.groupedOptions/wiki/Documentation) contains an explanation of the _data-bind_ syntax and generally how to use this custom binding.
 
