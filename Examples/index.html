@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<title>knockout - groupedOptions demo</title>
+	</head>
+	
+	
+	<style>
+		body
+		{
+			font-family: Arial, Sans-serif;
+			margin: 0;
+			padding: 1em;
+		}
+		button
+		{
+			padding: 0.5em;
+		}
+		div
+		{
+			background-color: #e7e7e7;
+			border: 1px solid #777;
+			margin: 1em 1em 1em 0;
+			padding: 0 1em 1em 1em;
+			width: 900px;
+		}
+		h4
+		{
+			margin-bottom: 0.5em;
+		}
+		h4 + p
+		{
+			margin-top: 0;
+		}
+		select
+		{
+			border: 1px solid #c7c7c7;
+			display: inline-block;
+			margin-right: 2em;
+			padding: 0.5em;
+		}
+		.code
+		{
+			font-family: courier, serif;
+			font-size: 0.8em;
+		}
+	</style>
+	
+	
+	<body onload="init()">
+	
+		<h1><em>groupedOptions</em> custom Knockoutjs binding</h1>
+	
+		<p>
+			Here are three examples of how to implement the <em>groupedOptions</em> custom Knockoutjs binding.
+		</p>
+		<p>
+			All the examples use the same JavaScript object, <span class="code">demoGroups</span>, which can be easily read by viewing this page's source.
+		</p>
+		<p>
+			As well as containing the custom binding script, the accompanying JavaScript file, knockout-groupedOptions.js, contains an explanation of each of the parameters and their conventional names.
+		</p>
+		
+		
+		<div id="example-conventional">
+			<h3>
+				Conventional implementation
+			</h3>
+			<p>
+				This &lt;select&gt; element is bound to a view-model whose property names follow the conventions defined in <em>groupedOptions</em>.
+			<p>
+			<h4>
+				data-bind attribute
+			</h4>
+			<p class="code">
+				data-bind="groupedOptions: { groups: { coll: Groups }, optionsCaption: '- Please select -', value: SelectedOption }"
+			</p>
+			<h4>
+				JavaScript example file
+			</h4>
+			<p class="code">
+				demo.js
+			</p>
+			<p>
+				<select data-bind="groupedOptions: { groups: { coll: Groups }, optionsCaption: '- Please select -', value: SelectedOption }"></select>
+				<span data-bind="visible: SelectedOption(), text: SelectedText"></span>
+			</p>
+		</div>
+		
+		
+		<div id="example-nonconventional">
+			<h3>
+				Non-conventional implementation
+			</h3>
+			<p>
+				This &lt;select&gt; element is bound to a view-model whose property names <u>do not</u> follow the conventions defined in <em>groupedOptions</em>.
+			<p>
+			<h4>
+				data-bind attribute
+			</h4>
+			<p class="code">
+				data-bind="groupedOptions: { groups: { coll: Groups, label: 'DisplayText', options: { coll: 'Items', text: 'Display', value: 'Val' } }, optionsCaption: '- Please select -', value: SelectedOption }"
+			</p>
+			<h4>
+				JavaScript example file
+			</h4>
+			<p class="code">
+				demo-non-conventional.js
+			</p>
+			<p>
+				<select data-bind="groupedOptions: { groups: { coll: Groups, label: 'DisplayText', options: { coll: 'Items', text: 'Display', value: 'Val' } }, optionsCaption: '- Please select -', value: SelectedOption }"></select>
+				<span data-bind="visible: SelectedOption(), text: SelectedText"></span>
+			</p>
+		</div>
+		
+		
+		<div id="example-nonobservable">
+			<h3>
+				Non-observable implementation
+			</h3>
+			<p>
+				This &lt;select&gt; element is bound to a view-model whose properties are not observable.
+			<p>
+			<h4>
+				data-bind attribute
+			</h4>
+			<p class="code">
+				data-bind="groupedOptions: { groups: { coll: Groups }, optionsCaption: '- please select -', value: SelectedOption }"
+			</p>
+			<h4>
+				JavaScript example file
+			</h4>
+			<p class="code">
+				demo-non-observable.js
+			</p>
+			<p>
+				<select data-bind="groupedOptions: { groups: { coll: Groups }, optionsCaption: '- Please select -', value: 'SelectedOption' }"></select>
+				<button data-bind="click: display">Click me</button>
+			</p>
+		</div>
+		
+		
+		<p>
+			knockout-groupedOptions is hosted on <a href="https://github.com/Supertext/knockout.groupedOptions" target="_new">GitHub</a>, which also contains
+			full <a href="https://github.com/Supertext/knockout.groupedOptions/wiki/Documentation" target="_new">documentation</a>.
+		</p>
+		
+		<p>
+			The <em>groupedOptions</em> custom Knockoutjs binding was developed by Andrew Jameson for <a href="www.supertext.ch" target="_new">www.supertext.ch</a> and is made available under the <a href="http://opensource.org/licenses/MIT" _target="_new">MIT license</a>.
+		</p>
+		
+		
+		<script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.0.0/knockout-min.js" type="text/javascript"></script>
+		<script src="https://github.com/Supertext/knockout.groupedOptions/raw/master/knockout-groupedOptions.min.js" type="text/javascript"></script>
+		<script src="demo.js" type="text/javascript"></script>
+		<script src="demo-non-conventional.js" type="text/javascript"></script>
+		<script src="demo-non-observable.js" type="text/javascript"></script>
+		
+		<script type="text/javascript">
+			function init() {
+			
+				var demoGroups = [{
+							"Label": "group 1",
+							"Options": [{
+												"Text": "item 1 - 1",
+												"Value": "1-1"
+										},
+										{
+												"Text": "item 1 - 2",
+												"Value": "1-2"
+										},
+										{
+												"Text": "item 1 - 3",
+												"Value": "1-3"
+										}]
+						},
+						{
+							"Label": "group 2",
+							"Options": [{
+												"Text": "item 2 - 1",
+												"Value": "2-1"
+										},
+										{
+												"Text": "item 2 - 2",
+												"Value": "2-2"
+										},
+										{
+												"Text": "item 2 - 3",
+												"Value": "2-3"
+										}]
+							}];
+			
+				var vmConventional = buildConventional(demoGroups);				// inside demo.js			
+				var vmNonConventional = buildNonConventional(demoGroups);		// inside demo-non-conventional.js			
+				var vmNonObservable = buildNonObservable(demoGroups);			// inside demo-non-observable.js
+							
+				ko.applyBindings(vmConventional, document.getElementById("example-conventional"));
+				ko.applyBindings(vmNonConventional, document.getElementById("example-nonconventional"));
+				ko.applyBindings(vmNonObservable, document.getElementById("example-nonobservable"));
+			}
+		</script>
+		
+	</body>
+</html>
