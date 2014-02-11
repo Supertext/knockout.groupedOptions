@@ -1,5 +1,5 @@
 /*!
- * knockout-groupedOptions.js v0.1
+ * knockout-groupedOptions.js v0.11
  * 
  * Copyright (c) Andrew Jameson, www.Supertext.ch
  * Available under the MIT license: http://opensource.org/licenses/MIT
@@ -28,19 +28,27 @@
 
 
 ko.bindingHandlers.groupedOptions = {
-    "init": function (element, valueAccessor, allBindings) {
+    "init": function (element) {
+		
+		// add a change handler to record when a selection has been made
         ko.utils.registerEventHandler(element, "change", function () {
-            var value = valueAccessor(),
-				property = ko.utils.domData.get(element, "property");
+		
+            var property = ko.utils.domData.get(element, "property");	
+
+			// if no property was specified (to bind the selected value to) then just exit here
+			if (typeof property === "undefined") {
+				return;
+			}
+			
             ko.utils.arrayForEach(element.getElementsByTagName("option"), function(node) {
                 if (node.selected) {
 					var data = ko.utils.domData.get(node, "data");
-					if (typeof(property) === "function") {
+					if (typeof property === "function") {
 						property(data);
-					} else if (typeof(property) === "string") {
-						var vm = ko.dataFor(element);
-						if (vm !== null) {
-							vm[property] = data;
+					} else if (typeof property === "string") {
+						var viewModel = ko.dataFor(element);
+						if (viewModel !== null) {
+							viewModel[property] = data;
 						}
 					}
 				}
@@ -48,48 +56,50 @@ ko.bindingHandlers.groupedOptions = {
         });
     },
     "update": function(element, valueAccessor) {
+	
+		// a helper function that we'll use later
+		function tryGetString(property, defaultVal) {
+			return typeof property === "string" && property.length
+				? property
+				: defaultVal;
+		}
+	
 		
         // Get the parameters
 
         var h = ko.utils.unwrapObservable(valueAccessor());
 
-        var groups = h["groups"],
+        var groups = h.groups,
             groupsCollection,
             groupsLabel = "Label",			// the convention for this property
             optionsCollProp = "Options",	// the convention for this property
             optionsTextProp = "Text",		// the convention for this property
-            optionsValProp = "Value",		// the convention for this property
-			optionsValue = null;
+            optionsValProp = "Value";		// the convention for this property
 
-        if (typeof (groups) === "undefined" || !groups) {
+        if (typeof groups === "undefined" || !groups) {
             throw "The \"groupedOption\" binding requires a \"groups\" object be specified.";
         } else {
-            groupsCollection = groups["coll"];
+            groupsCollection = groups.coll;
         }
         if (!groupsCollection) {
             throw "The \"groupedOption\" binding's \"groups\" object requires that a collection (array or observableArray) be specified.";
         }
-        if (typeof (groups["label"]) === "string" && groups["label"].length) {
-            groupsLabel = groups["label"];
+        if (typeof groups.label === "string" && groups.label.length) {
+            groupsLabel = groups.label;
         }
-        if (typeof (groups["options"]) === "object") {
-            var options = groups["options"];
-            if (typeof (options["coll"]) === "string" && options["coll"].length) {
-                optionsCollProp = options["coll"];
-            }
-            if (typeof (options["text"]) === "string" && options["text"].length) {
-                optionsTextProp = options["text"];
-            }
-            if (typeof (options["value"]) === "string" && options["value"].length) {
-                optionsValProp = options["value"];
-            }
+        if (typeof groups.options === "object") {
+            var optionsConfig = groups.options;
+			optionsCollProp = tryGetString(optionsConfig.coll, optionsCollProp);
+			optionsTextProp = tryGetString(optionsConfig.text, optionsTextProp);
+			optionsValProp = tryGetString(optionsConfig.val, optionsValProp);
         }
-		var selectedItem = h["value"],
+		var selectedItem = h.value,
 			selectedValue = ko.unwrap(selectedItem);
-		if (typeof(selectedItem) === "function") {
+		if (typeof selectedItem === "function") {
+			// this caters for the situation whereby the subscribing property *IS* an observable
 			ko.utils.domData.set(element, "property", selectedItem);	// this records the subscribing property, i.e., the property which stores the selected item
-		} else if (typeof(selectedItem) === "string") {
-			// this caters for the situation whereby the subscribing property is not an observable
+		} else if (typeof selectedItem === "string") {
+			// this caters for the situation whereby the subscribing property *IS NOT* an observable
 			ko.utils.domData.set(element, "property", selectedItem);	// this records the name of the subscribing property, i.e., the property which stores the selected item
 		}
 		
@@ -99,7 +109,7 @@ ko.bindingHandlers.groupedOptions = {
             children = element.childNodes,
             childMax = children.length;
         for (var c = 0; c < childMax; c++) {
-            if (children[c].nodeType != 3) {
+            if (children[c].nodeType === 1) {	// nodeType === 1 means only consider HTML elements and ignore things like text nodes and comment nodes
                 childCount++;
             }
         }
@@ -109,14 +119,14 @@ ko.bindingHandlers.groupedOptions = {
 
         // if 'element' is currently empty then add the default <option> element
         if (!childCount) {
-			var defaultText = h["optionsCaption"];
- 			if (defaultText && typeof(defaultText) === "string" && defaultText.length) {
+			var defaultText = h.optionsCaption;
+ 			if (defaultText && typeof defaultText === "string" && defaultText.length) {
         		var defaultOption = document.createElement("option");
 				defaultOption.innerHTML = defaultText;
 				element.appendChild(defaultOption);
         	}
         } else {
-            // if 'element' is not empty then decrement realChildren by 1, which represents the default <option> element
+            // if 'element' is not empty then decrement childCount by 1, which represents the default <option> element
             childCount--;
         }
 
