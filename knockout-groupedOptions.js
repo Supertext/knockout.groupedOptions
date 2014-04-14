@@ -117,18 +117,19 @@ ko.bindingHandlers.groupedOptions = {
 		
         // Default <option> element
 
-        // if 'element' is currently empty then add the default <option> element
-        if (!childCount) {
-			var defaultText = h.optionsCaption;
- 			if (defaultText && typeof defaultText === "string" && defaultText.length) {
-        		var defaultOption = document.createElement("option");
-				defaultOption.innerHTML = defaultText;
-				element.appendChild(defaultOption);
-        	}
-        } else {
-            // if 'element' is not empty then decrement childCount by 1, which represents the default <option> element
-            childCount--;
-        }
+	if (h.optionsCaption && typeof h.optionsCaption === "string" && h.optionsCaption.length) {
+	
+	    // if 'element' is currently empty then add the default <option> element
+	    if (!childCount) {
+		var defaultOption = document.createElement("option");
+		defaultOption.innerHTML = h.optionsCaption;
+		element.appendChild(defaultOption);
+	    } else if (typeof groups.options === "object") {
+		// if 'element' is not empty AND if there is a configured 'optionsCaption' 
+		// then decrement childCount by 1, which represents the 'optionsCaption', i.e. a default <option> element
+		childCount--;
+	    }
+	}
 
 
         // now it's time to loop through each <optgroup>
