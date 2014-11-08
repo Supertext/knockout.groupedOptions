@@ -1,5 +1,5 @@
 /*!
- * knockout-groupedOptions.js v0.11
+ * knockout-groupedOptions.js v0.2
  * 
  * Copyright (c) Andrew Jameson, www.Supertext.ch
  * Available under the MIT license: http://opensource.org/licenses/MIT
@@ -26,56 +26,130 @@
 
 // Note that neither of the above examples considers a subscribing property, i.e., a property whose value is pre-selected and which is updated when the user selection changes.
 
+ko.bindingHandlers["groupedOptions"] = {
+    "init": function(element, valueAccessor, allBindings, viewModel) {
 
-ko.bindingHandlers.groupedOptions = {
-    "init": function (element) {
-		
-		// add a change handler to record when a selection has been made
-        ko.utils.registerEventHandler(element, "change", function () {
-		
-            var property = ko.utils.domData.get(element, "property");	
+        // perform some checking of what we've been given to bind
+        if (element.tagName.toLowerCase() !== "select") {
+            throw new Error("groupedOptions binding applies only to SELECT elements");
+        }
 
-			// if no property was specified (to bind the selected value to) then just exit here
-			if (typeof property === "undefined") {
-				return;
-			}
-			
-            ko.utils.arrayForEach(element.getElementsByTagName("option"), function(node) {
-                if (node.selected) {
-					var data = ko.utils.domData.get(node, "data");
-					if (typeof property === "function") {
-						property(data);
-					} else if (typeof property === "string") {
-						var viewModel = ko.dataFor(element);
-						if (viewModel !== null) {
-							viewModel[property] = data;
-						}
-					}
-				}
+        var win = window;
+
+        // remove all existing elements
+        while (element.firstChild) {
+            win.ko.removeNode(element.firstChild);
+        }
+
+        // add a change handler to record when a selection has been made
+        win.ko.utils.registerEventHandler(element, "change", function() {
+
+            // get the name of the property which stores the selected observable data
+            var property = win.ko.utils.domData.get(element, "property");
+
+            // if no property name was specified (to bind the selected value to) then just exit here
+            if (typeof property === "undefined") {
+                return;
+            }
+
+            // get the selected <option>
+            var elmntOptSelected = win.ko.utils.arrayFirst(element.getElementsByTagName("option"), function(elmntOption) {
+                return elmntOption.selected === true || elmntOption.getAttribute("selected");
             });
+            if (elmntOptSelected === null) {
+                return;
+            }
+            
+            // get the observable data behind the selected <option>
+            var obsData = win.ko.utils.domData.get(elmntOptSelected, "data");
+
+            // attach the observable data to the property which stores the selected value
+            if (typeof property === "function") {
+
+                // the property is an observable/function and the selected observable data should be passed as a param
+
+                property(obsData);
+
+            } else if (typeof property === "string") {
+
+                // the property is NOT an observable/function
+
+                viewModel[property] = obsData;
+            }
         });
+
+        // Ensures that the binding processor doesn't try to bind the options
+        return { 'controlsDescendantBindings': true };
     },
-    "update": function(element, valueAccessor) {
-	
-		// a helper function that we'll use later
-		function tryGetString(property, defaultVal) {
-			return typeof property === "string" && property.length
-				? property
-				: defaultVal;
-		}
-	
-		
-        // Get the parameters
+    "update": function(element, valueAccessor, allBindings, viewModel) {
 
-        var h = ko.utils.unwrapObservable(valueAccessor());
+        // cache some globals
+        var win = window,
+            doc = win.document,
 
-        var groups = h.groups,
+            // Get the parameters
+            h = win.ko.unwrap(valueAccessor()),
+            groups = h.groups,
             groupsCollection,
-            groupsLabel = "Label",			// the convention for this property
-            optionsCollProp = "Options",	// the convention for this property
-            optionsTextProp = "Text",		// the convention for this property
-            optionsValProp = "Value";		// the convention for this property
+            groupsLabel = "Label", // the convention for this property
+            optionsCollProp = "Options", // the convention for this property
+            optionsTextProp = "Text", // the convention for this property
+            optionsValProp = "Value", // the convention for this property
 
+            // helper functions that we'll use later
+            koUtils = function() {
+
+                // these functions have been copied from ko.utils (https://github.com/knockout/knockout/blob/master/src/utils.js)
+                // - have to copy them in here because ko.utils doesn't expose them
+
+                var ieVersion = document && (function() {
+                        var version = 3,
+                            div = document.createElement('div'),
+                            iElems = div.getElementsByTagName('i');
+                        // Keep constructing conditional HTML blocks until we hit one that resolves to an empty fragment
+                        while (
+                            div.innerHTML = '<!--[if gt IE ' + (++version) + ']><i></i><![endif]-->',
+                            iElems[0]
+                        ) {
+                        }
+                        return version > 4 ? version : undefined;
+                    }()),
+                    emptyDomNode = function(domNode) {
+                        while (domNode.firstChild) {
+                            win.ko.removeNode(domNode.firstChild);
+                        }
+                    },
+                    setDomNodeChildren = function(domNode, childNodes) {
+                        emptyDomNode(domNode);
+                        if (childNodes) {
+                            for (var i = 0, j = childNodes.length; i < j; i++)
+                                domNode.appendChild(childNodes[i]);
+                        }
+                    },
+                    setOptionNodeSelectionState = function(optionNode, isSelected) {
+                        // IE6 sometimes throws "unknown error" if you try to write to .selected directly, whereas Firefox struggles with setAttribute. Pick one based on browser.
+                        if (ieVersion < 7)
+                            optionNode.setAttribute("selected", isSelected);
+                        else
+                            optionNode.selected = isSelected;
+                    };
+
+                return {
+                    emptyDomNode: emptyDomNode,
+
+                    setDomNodeChildren: setDomNodeChildren,
+
+                    setOptionNodeSelectionState: setOptionNodeSelectionState
+                }
+            }(),
+            tryGetString = function(property, defaultVal) {
+
+                return typeof property === "string" && property.length
+                           ? property
+                           : defaultVal;
+            };
+
+        // perform some checking of what we've been given to bind
         if (typeof groups === "undefined" || !groups) {
             throw "The \"groupedOption\" binding requires a \"groups\" object be specified.";
         } else {
@@ -87,102 +161,107 @@ ko.bindingHandlers.groupedOptions = {
         if (typeof groups.label === "string" && groups.label.length) {
             groupsLabel = groups.label;
         }
+
+        // now get the specified properties, or use the defaults
         if (typeof groups.options === "object") {
             var optionsConfig = groups.options;
-			optionsCollProp = tryGetString(optionsConfig.coll, optionsCollProp);
-			optionsTextProp = tryGetString(optionsConfig.text, optionsTextProp);
-			optionsValProp = tryGetString(optionsConfig.val, optionsValProp);
-        }
-		var selectedItem = h.value,
-			selectedValue = ko.unwrap(selectedItem);
-		if (typeof selectedItem === "function") {
-			// this caters for the situation whereby the subscribing property *IS* an observable
-			ko.utils.domData.set(element, "property", selectedItem);	// this records the subscribing property, i.e., the property which stores the selected item
-		} else if (typeof selectedItem === "string") {
-			// this caters for the situation whereby the subscribing property *IS NOT* an observable
-			ko.utils.domData.set(element, "property", selectedItem);	// this records the name of the subscribing property, i.e., the property which stores the selected item
-		}
-		
-
-        // find how many elements have already been added to 'element'
-        var childCount = 0,
-            children = element.childNodes,
-            childMax = children.length;
-        for (var c = 0; c < childMax; c++) {
-            if (children[c].nodeType === 1) {	// nodeType === 1 means only consider HTML elements and ignore things like text nodes and comment nodes
-                childCount++;
-            }
+            optionsCollProp = tryGetString(optionsConfig.coll, optionsCollProp);
+            optionsTextProp = tryGetString(optionsConfig.text, optionsTextProp);
+            optionsValProp = tryGetString(optionsConfig.val, optionsValProp);
         }
 
-		
-        // Default <option> element
+        // find out which item is the currently-selected item
+        var selectedItemProperty = h.value,
+            selectedValue = win.ko.unwrap(selectedItemProperty);
+        if (typeof selectedItemProperty === "function") {
+            // this caters for the situation whereby the subscribing property *IS* an observable
+            win.ko.utils.domData.set(element, "property", selectedItemProperty); // this records the subscribing property, i.e., the property which stores the selected item
+        } else if (typeof selectedItemProperty === "string") {
+            // this caters for the situation whereby the subscribing property *IS NOT* an observable
+            win.ko.utils.domData.set(element, "property", selectedItemProperty); // this records the name of the subscribing property, i.e., the property which stores the selected item
+        }
 
-	if (h.optionsCaption && typeof h.optionsCaption === "string" && h.optionsCaption.length) {
-	
-	    // if 'element' is currently empty then add the default <option> element
-	    if (!childCount) {
-		var defaultOption = document.createElement("option");
-		defaultOption.innerHTML = h.optionsCaption;
-		element.appendChild(defaultOption);
-	    } else if (typeof groups.options === "object") {
-		// if 'element' is not empty AND if there is a configured 'optionsCaption' 
-		// then decrement childCount by 1, which represents the 'optionsCaption', i.e. a default <option> element
-		childCount--;
-	    }
-	}
+        // attach the view-model to the <select> element
+        win.ko.utils.domData.set(element, "data", viewModel);
+
+        var fragment = doc.createDocumentFragment();
+
+        // consider the default <option> element
+        if (h.optionsCaption && typeof h.optionsCaption === "string" && h.optionsCaption.length) {
+
+            var defaultOption = doc.createElement("option");
+
+            defaultOption.innerHTML = h.optionsCaption;
+
+            // jQuery validation requires an empty 'value' attribute on the default node
+            defaultOption.setAttribute("value", "");
+
+            // and add this <option> to the in-progress DOM fragment
+            fragment.appendChild(defaultOption);
+        }
 
 
-        // now it's time to loop through each <optgroup>
-        // in this loop, i is set to the the index in the collection which marks the start of the newly-added items, skipping items already added (which were counted above)
-        var coll = ko.utils.unwrapObservable(groupsCollection);
-        childMax = coll.length;
-        for (; childCount < childMax; childCount++) {
+        // loop through each group in the collection
+        var groupColl = win.ko.utils.unwrapObservable(groupsCollection);
+        for (var groupIdx = 0, groupIdxMax = groupColl.length; groupIdx < groupIdxMax; groupIdx++) {
 
-            var groupLabel = ko.utils.unwrapObservable(coll[childCount][groupsLabel]);
+            var thisObservable = win.ko.unwrap(groupColl[groupIdx]),
+                optionColl = win.ko.unwrap(groupColl[groupIdx][optionsCollProp]), // the Options collection for the current option-group
+                optionIdxMax = optionColl.length,
+                groupLabel = win.ko.unwrap(thisObservable[groupsLabel]);    // get the text to be displayed for this <optgroup>
 
-            // if there is no label for this <optgroup> then don't add the <optgroup>
+            // if there is no label for the current group then don't add an <optgroup>
             if (!groupLabel || !groupLabel.length) {
                 continue;
             }
 
-            var optGroup = document.createElement("optgroup");
+            // create an <optgroup> element and set the 'label' attribute
+            var optGroup = doc.createElement("optgroup");
             optGroup.setAttribute("label", groupLabel);
 
-            // loop through each <option>
-            // determine whether the <option>s collection is an array or an observableArray
-            var options = ko.utils.unwrapObservable(coll[childCount][optionsCollProp]);
-            for (var j = 0, jMax = options.length; j < jMax; j++) {
+            // attach the current observable to the DOM element
+            win.ko.utils.domData.set(optGroup, "data", thisObservable);
 
-				var thisOption = options[j],
-					optionText = ko.utils.unwrapObservable(thisOption[optionsTextProp]);
+            
+            // loop through each option object in the current group
+            for (var optionIdx = 0; optionIdx < optionIdxMax; optionIdx++) {
 
-				// if there is no text for this <option> then don't add the <option>
-				if (!optionText || !optionText.length) {
-					continue;
-				}
+                var thisOption = optionColl[optionIdx],
+                    optionText = win.ko.unwrap(thisOption[optionsTextProp]),
+                    optionVal = win.ko.unwrap(thisOption[optionsValProp]),
+                    elmntOption = doc.createElement("option");
 
-                var option = document.createElement("option");
-                option.innerHTML = optionText;
+                elmntOption.innerHTML = optionText;
 
                 // add the 'value' attribute if it exists
-                var val = ko.utils.unwrapObservable(thisOption[optionsValProp]);
-                if (val && val.length) {
-                    option.setAttribute("value", val);
+                if (optionVal && optionVal.length) {
+                    elmntOption.setAttribute("value", optionVal);
                 }
-				
-				// if this is the same object as the 'value' parameter then indicate so				
-				if (thisOption === selectedValue) {
-					option.setAttribute("selected", "selected");
-				}
-				
-				// add the observable to this node so that we may retrieve this data in future
-				ko.utils.domData.set(option, "data", thisOption);
+
+                // attach the current observable to the DOM element
+                win.ko.utils.domData.set(elmntOption, "data", thisOption);
 
                 // now add this <option> to the parent <optgroup>
-                optGroup.appendChild(option);
+                optGroup.appendChild(elmntOption);
             }
 
-            element.appendChild(optGroup);
+            // and add this <optgroup> to the in-progress DOM fragment
+            fragment.appendChild(optGroup);
+        }
+
+        // remove all existing <optgroup> or <option> elements
+        koUtils.emptyDomNode(element);
+
+        // and add the above-processed DOM fragment
+        element.appendChild(fragment);
+
+        // now we have to mark which <option> element is selected
+        // - ie6 doesn't like this being done before it's added to the DOM, so we've delayed this job until now
+        var elmntOptSelected = win.ko.utils.arrayFirst(element.getElementsByTagName("option"), function(elmntOption) {
+            return win.ko.utils.domData.get(elmntOption, "data") === selectedValue;
+        });
+        if (elmntOptSelected) {
+            koUtils.setOptionNodeSelectionState(elmntOptSelected, true);
         }
 
         return true;
