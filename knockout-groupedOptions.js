@@ -167,7 +167,7 @@ ko.bindingHandlers["groupedOptions"] = {
             var optionsConfig = groups.options;
             optionsCollProp = tryGetString(optionsConfig.coll, optionsCollProp);
             optionsTextProp = tryGetString(optionsConfig.text, optionsTextProp);
-            optionsValProp = tryGetString(optionsConfig.val, optionsValProp);
+            optionsValProp = tryGetString(optionsConfig.value, optionsValProp);
         }
 
         // find out which item is the currently-selected item
